@@ -1,0 +1,22 @@
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css");
+input::placeholder {
+    color: gray !important;
+}
+
+.avatar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(75,92,107,255);
+    color: #ffffff;
+    margin-left: 25px;
+    font-size: 40px;
+}
+
+.avatar:before {
+    border: 2px solid rgba(75,92,107,255);
+    border-radius: 50%;
+}
