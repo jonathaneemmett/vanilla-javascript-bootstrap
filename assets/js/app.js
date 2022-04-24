@@ -4,6 +4,7 @@
 	let employeeSearch = document.getElementById('employeeSearch')
 	let companySearch = document.getElementById('companySearch')
 	let showModal = document.getElementById('showModal')
+	let clear = document.getElementById('clearSearch')
 
 	// Modal Form
 	let myModal = new bootstrap.Modal(document.getElementById('modal'))
@@ -41,14 +42,17 @@
 		return res.json()
 	}
 
-	const filterByCompany = (id) => {
-		console.log('this ran')
-		console.log(id)
+	const filterByCompany = async (id) => {
+		if (id) {
+			employees = employees.filter((emp) => emp.company_id === Number(id))
+			await showEmployees()
+		} else {
+			await clearSearch()
+		}
 	}
 
 	const showEmployees = async () => {
 		dataDom.innerHTML = ''
-
 		// First we sort, because sorted data is happy data, then we filter based on search criteria, then we iterate through and build the dom.
 		employees
 			.sort((a, b) => {
@@ -63,6 +67,7 @@
 				let comp = companies.filter(
 					(item) => typeof item.id !== undefined && item.id === emp.company_id,
 				)
+
 				let empObject = `<div class="col-md-4 col-lg-4">
                                         <div class="card border-3 bg-light h-100">
                                             <div class="card-body py-4">
@@ -77,7 +82,7 @@
                                                 </div>
                                                 <div class="row my-4 ms-2">
                                                     <div class="col">
-														<a class="btn company"  data-comp-id="${comp[0].id}">${comp[0].company_name}</a>
+														<a class="btn text-primary fs-5 company"  data-comp-id="${comp[0].id}">${comp[0].company_name}</a>
 													</div>
 												</div>
                                             </div>
@@ -87,6 +92,14 @@
 				// Append it to the Dom.
 				dataDom.innerHTML += empObject
 			})
+
+		// Handle a link click from emp template literal
+		let compLink = document.querySelectorAll('.company')
+		for (let i = 0; i < compLink.length; i++) {
+			compLink[i].addEventListener('click', async () => {
+				await filterByCompany(compLink[i].dataset.compId)
+			})
+		}
 	}
 
 	// Utility Functions
@@ -95,6 +108,17 @@
 		lastName.value = ''
 		email.value = ''
 		companyName.value = ''
+		search = ''
+	}
+
+	const clearSearch = async () => {
+		employeeSearch.value = ''
+		companySearch.selectedIndex = 0
+		search = ''
+
+		employees = await fetchEmployees()
+		companies = await fetchCompanies()
+		await showEmployees()
 	}
 
 	try {
@@ -119,15 +143,14 @@
 		if (employees && companies) {
 			await showEmployees()
 
-			employeeSearch.addEventListener('input', (e) => {
+			employeeSearch.addEventListener('input', async (e) => {
 				// Search Term
 				search = e.target.value
-				showEmployees()
+				await showEmployees()
 			})
 
-			companySearch.addEventListener('change', (e) => {
-				compSearch = e.target.value
-				showEmployees()
+			companySearch.addEventListener('change', async (e) => {
+				await filterByCompany(e.target.value)
 			})
 
 			// Modal Functions
@@ -178,13 +201,10 @@
 				myModal.hide()
 			})
 
-			// Handle a link click from emp template literal
-			let compLink = document.querySelectorAll('.company')
-			for (let i = 0; i < compLink.length; i++) {
-				compLink[i].addEventListener('click', function () {
-					filterByCompany(compLink[i].dataset.compId)
-				})
-			}
+			// Clear search
+			clear.addEventListener('click', async () => {
+				await clearSearch()
+			})
 		} else {
 			// Throw an error if things are sideways.
 			throw new Error('There was an issue getting employees or companies.')
