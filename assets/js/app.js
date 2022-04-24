@@ -6,6 +6,7 @@
 	let showModal = document.getElementById('showModal')
 
 	// Modal Form
+	let myModal = new bootstrap.Modal(document.getElementById('modal'))
 	let modalClose = document.getElementById('modal_close')
 	let firstName = document.getElementById('first_name')
 	let lastName = document.getElementById('last_name')
@@ -40,6 +41,11 @@
 		return res.json()
 	}
 
+	const filterByCompany = (id) => {
+		console.log('this ran')
+		console.log(id)
+	}
+
 	const showEmployees = async () => {
 		dataDom.innerHTML = ''
 
@@ -57,7 +63,7 @@
 				let comp = companies.filter(
 					(item) => typeof item.id !== undefined && item.id === emp.company_id,
 				)
-				let empObject = `   <div class="col-md-4 col-lg-4">
+				let empObject = `<div class="col-md-4 col-lg-4">
                                         <div class="card border-3 bg-light h-100">
                                             <div class="card-body py-4">
                                                 <div class="row ms-1">
@@ -71,13 +77,13 @@
                                                 </div>
                                                 <div class="row my-4 ms-2">
                                                     <div class="col">
-                                                    <a href="#" style="font-size: 1.2em; font-weight: 300; text-decoration: none">${comp[0].company_name}</a>
-                                                    </div>
-                                                </div>
+														<a class="btn company"  data-comp-id="${comp[0].id}">${comp[0].company_name}</a>
+													</div>
+												</div>
                                             </div>
                                         </div>
                                     </div>
-                                `
+								`
 				// Append it to the Dom.
 				dataDom.innerHTML += empObject
 			})
@@ -124,9 +130,8 @@
 				showEmployees()
 			})
 
-			// Show modal
+			// Modal Functions
 			showModal.addEventListener('click', () => {
-				var myModal = new bootstrap.Modal(document.getElementById('modal'))
 				myModal.show()
 			})
 
@@ -143,15 +148,18 @@
 
 			addEmployee.addEventListener('click', () => {
 				try {
+					// Little bit of validation
 					if (
 						!firstName.value ||
 						!lastName.value ||
 						!email.value ||
 						!companyName.value
 					) {
+						// Throw an error if a field is empty, would put this in some sort of function that handled displaying to the user which field.
 						throw new Error('All form fields are required.')
 					}
 
+					// Mock submit to db..
 					console.log(
 						`Last Name: ${lastName.value}, First Name: ${
 							firstName.value
@@ -160,11 +168,23 @@
 						}`,
 					)
 
+					// Clear the form
 					clearForm()
 				} catch (err) {
 					console.error(err.message)
 				}
+
+				// Hide the modal
+				myModal.hide()
 			})
+
+			// Handle a link click from emp template literal
+			let compLink = document.querySelectorAll('.company')
+			for (let i = 0; i < compLink.length; i++) {
+				compLink[i].addEventListener('click', function () {
+					filterByCompany(compLink[i].dataset.compId)
+				})
+			}
 		} else {
 			// Throw an error if things are sideways.
 			throw new Error('There was an issue getting employees or companies.')
