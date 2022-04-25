@@ -22,6 +22,7 @@
 	let search = ''
 	let compSearch = ''
 
+	// Fetchs all employees from db/json file
 	const fetchEmployees = async () => {
 		let res = await fetch('../assets/data/employee_data.json', {
 			headers: {
@@ -32,6 +33,7 @@
 		return res.json()
 	}
 
+	// Fetchs all companies form db/json file
 	const fetchCompanies = async () => {
 		let res = await fetch('../assets/data/company_data.json', {
 			headers: {
@@ -42,7 +44,29 @@
 		return res.json()
 	}
 
+	// Load dropdowns with company information
+	const loadDropdowns = async () => {
+		companies
+			.sort((a, b) => {
+				return a.company_name
+					.toLowerCase()
+					.localeCompare(b.company_name.toLowerCase())
+			})
+			.forEach((comp, index) => {
+				let option = `
+                <option value="${comp.id}">${comp.company_name}</option>
+            `
+
+				companySearch.innerHTML += option
+				companyName.innerHTML += option
+			})
+	}
+
+	// Filters company based on company id
 	const filterByCompany = async (id) => {
+		// Refetch employees to reset for next search if dropdown changes
+		employees = await fetchEmployees()
+
 		if (id) {
 			employees = employees.filter((emp) => emp.company_id === Number(id))
 			await showEmployees()
@@ -51,6 +75,7 @@
 		}
 	}
 
+	// Shows all employees from db
 	const showEmployees = async () => {
 		dataDom.innerHTML = ''
 		// First we sort, because sorted data is happy data, then we filter based on search criteria, then we iterate through and build the dom.
@@ -111,6 +136,7 @@
 		search = ''
 	}
 
+	// Clears Search fields and resets employees, companies to default
 	const clearSearch = async () => {
 		employeeSearch.value = ''
 		companySearch.selectedIndex = 0
@@ -121,24 +147,11 @@
 		await showEmployees()
 	}
 
+	// Let the games begin!
 	try {
 		employees = await fetchEmployees()
 		companies = await fetchCompanies()
-
-		companies
-			.sort((a, b) => {
-				return a.company_name
-					.toLowerCase()
-					.localeCompare(b.company_name.toLowerCase())
-			})
-			.forEach((comp, index) => {
-				let option = `
-                <option value="${comp.id}">${comp.company_name}</option>
-            `
-
-				companySearch.innerHTML += option
-				companyName.innerHTML += option
-			})
+		await loadDropdowns()
 
 		if (employees && companies) {
 			await showEmployees()
@@ -158,6 +171,7 @@
 				myModal.show()
 			})
 
+			// Sets label based on companyName change
 			companyName.addEventListener('change', (e) => {
 				let newHtml = `Add employee to ${
 					companyName.options[companyName.selectedIndex].text
@@ -165,10 +179,12 @@
 				displayCompany.innerHTML = newHtml
 			})
 
+			// Handles modal close
 			modalClose.addEventListener('click', () => {
 				clearForm()
 			})
 
+			// Handles add Employee
 			addEmployee.addEventListener('click', () => {
 				try {
 					// Little bit of validation
@@ -178,7 +194,7 @@
 						!email.value ||
 						!companyName.value
 					) {
-						// Throw an error if a field is empty, would put this in some sort of function that handled displaying to the user which field.
+						// Throw an error if a field is empty, TODO: put this in some sort of function that handled displaying to the user which field.
 						throw new Error('All form fields are required.')
 					}
 
@@ -193,12 +209,12 @@
 
 					// Clear the form
 					clearForm()
+
+					// Hide the modal
+					myModal.hide()
 				} catch (err) {
 					console.error(err.message)
 				}
-
-				// Hide the modal
-				myModal.hide()
 			})
 
 			// Clear search
